@@ -5,6 +5,9 @@ from selenium.webdriver.common.by import By
 import requests
 import re
 from webdriver_manager.chrome import ChromeDriverManager
+import threading as thr
+from queue import Queue
+import time
 
 from bs4 import BeautifulSoup
 
@@ -28,7 +31,9 @@ class LinkChecker:
         print('Sorting links')
         self.sortLinks(self.link)
         print('\nLinks sorted')
-        self.testLinks()
+        self.testInternalLinks()
+        self.testExternalLinks()
+        
         
     
     def sortLinks(self,link):
@@ -69,36 +74,87 @@ class LinkChecker:
             if href not in self.visited_links:
                 self.sortLinks(href)
 
+    def requestInternalLink(self,key):
 
-    def testLinks(self):
-        print("\nTesting internal links...")
-        for text, href in self.internal_links.items():
-            if href.startswith('https://'):
-
-                request = requests.get(href, headers=self.headers)
+        if self.internal_links[key].startswith('https://'):
+            try:
+                request = requests.head(self.internal_links[key], headers=self.headers, timeout=5)
                 if request.ok:
-                    self.working_internal_links[text] = href
+                    self.working_internal_links[key] = self.internal_links[key]
                 else:
-                    self.broken_internal_links[text] = href
-            else:
-                self.broken_internal_links[text] = href
-        print("\nFinished testing internal links\nTesting external links...")
-        for text, href in self.external_links.items():
-            if href.startswith('https://'):
-                try:
-                    request = requests.get(href, headers = self.headers, timeout=10)
+                    self.broken_internal_links[key] = self.internal_links[key]
+            except:
+                self.broken_internal_links[key] = self.internal_links[key]
+        else:
+            self.broken_internal_links[key] = self.internal_links[key]
+
+    def workInternal(self,input_q):
+        while True:
+            item = input_q.get()
+            if item == "STOP":
+                break
+            self.requestInternalLink(item)
+
+
+
+    def testInternalLinks(self):
+        print("\nTesting internal links...")
+        input_q = Queue()
+        threads_number = 8
+        workers = [thr.Thread(target=self.workInternal, args=(input_q,),) for i in range(threads_number)]
+        for w in workers:
+            w.start()
+        for task in self.internal_links:
+            input_q.put(task)
+        for i in range(threads_number):
+            input_q.put("STOP")
+        for w in workers:
+            w.join()
             
-                    if request.ok:
-                        self.working_external_links[text] = href
-                    else:
-                        self.broken_external_links[text] = href
-                except:
-                    self.broken_external_links[text] = href
-            else:
-                self.broken_external_links[text] = href
+        print("\nFinished testing internal links")
+    
+    def requestExternalLink(self,key):
+
+        if self.external_links[key].startswith('https://'):
+            try:
+                request = requests.head(self.external_links[key], headers=self.headers, timeout=5)
+                if request.ok:
+                    self.working_external_links[key] = self.external_links[key]
+                else:
+                    self.broken_external_links[key] = self.external_links[key]
+            except:
+                self.broken_external_links[key] = self.external_links[key]
+        else:
+            self.broken_external_links[key] = self.external_links[key]
+
+    def workExternal(self,input_q):
+        while True:
+            item = input_q.get()
+            if item == "STOP":
+                break
+            self.requestExternalLink(item)
 
 
+
+    def testExternalLinks(self):
+        print("\nTesting external links...")
+        input_q = Queue()
+        threads_number = 8
+        workers = [thr.Thread(target=self.workExternal, args=(input_q,),) for i in range(threads_number)]
+        for w in workers:
+            w.start()
+        for task in self.external_links:
+            input_q.put(task)
+        for i in range(threads_number):
+            input_q.put("STOP")
+        for w in workers:
+            w.join()
+        print(f"{self.working_external_links}\n\n\n\n\n\n\n\n{self.broken_external_links}")
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     linkCheckerObj = LinkChecker("https://findbestdev.wpengine.com/")
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Elapsed time: {elapsed_time} seconds")
