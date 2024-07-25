@@ -3,11 +3,11 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import requests
-import re
 from webdriver_manager.chrome import ChromeDriverManager
 import threading as thr
 from queue import Queue
 import time
+import csv
 
 from bs4 import BeautifulSoup
 
