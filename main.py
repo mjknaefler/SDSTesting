@@ -8,6 +8,7 @@ import threading as thr
 from queue import Queue
 import time
 import csv
+from collections import defaultdict
 
 from bs4 import BeautifulSoup
 
@@ -27,12 +28,16 @@ class LinkChecker:
         self.broken_external_links = dict()
         self.edu_with_nofollow = dict()
         self.edu_missing_nofollow = dict()
+        self.link_location = defaultdict(list)
         self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
         print('Sorting links')
         self.sortLinks(self.link)
+        self.link_location = dict(self.link_location)
         print('\nLinks sorted')
         self.testInternalLinks()
         self.testExternalLinks()
+        self.report()
+        
         
         
     
@@ -68,6 +73,7 @@ class LinkChecker:
                     self.external_links[text] = href
                 else:
                     self.bad_links[text] = href
+            self.link_location[link].append({text: href})
 
         self.visited_links.append(link)
         for href in local_internal_links.values():
@@ -94,8 +100,6 @@ class LinkChecker:
             if item == "STOP":
                 break
             self.requestInternalLink(item)
-
-
 
     def testInternalLinks(self):
         print("\nTesting internal links...")
@@ -134,8 +138,6 @@ class LinkChecker:
                 break
             self.requestExternalLink(item)
 
-
-
     def testExternalLinks(self):
         print("\nTesting external links...")
         input_q = Queue()
@@ -149,8 +151,108 @@ class LinkChecker:
             input_q.put("STOP")
         for w in workers:
             w.join()
-        print(f"{self.working_external_links}\n\n\n\n\n\n\n\n{self.broken_external_links}")
+        print('\nDone testing external links\nCreating report...')
 
+    def parentLink(self,text,href):
+        for parent_link, child_list in self.link_location.items():
+            for text_href_dict in child_list:
+                if text in text_href_dict and text_href_dict[text] == href:
+                    return parent_link
+        return('Unknown')
+                
+    def report(self):
+        with open('link_report.csv', 'w') as csv_file:
+            writer = csv.writer(csv_file)
+            writer.writerow(['This CSV file contains a comprehensive report for all internal and external links found recursively on the entire site. The information is presented in broken to working order, meaning broken links or links with errors are displayed first with all working links found towards the bottome of the csv.'])
+            writer.writerow(['Each row of data is displayed in the format "Plain text of link, URL,Found At:,Parent URL" where the plain text is the hypertext pertaining to the given url and the Parent URL is the webpage where the URL can be found'])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['Broken Internal Links (Internal links which responded with an http response other than 200 and/or didnt start with "https://"):'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.broken_internal_links.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['Broken External Links (External links which responded with an http response other than 200 and/or didnt start with "https://"):'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.broken_external_links.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['External .edu links missing nofollow attribute:'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.edu_missing_nofollow.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['Bad Links (Links which are invalid and are not counted as empty, internal, or external links):'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.bad_links.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['Empty Links (Links with "#" as plain text):'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.empty_links.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['Working Internal Links (Internal links which responded with an http response of 200 and start with "https://"):'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.working_internal_links.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['Working External Links (External links which responded with an http response of 200 and start with "https://"):'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.working_external_links.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow([])
+            writer.writerow(['External .edu links containing nofollow attribute:'])
+            writer.writerow([])
+            writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
+            writer.writerow([])
+            for text, href in self.edu_with_nofollow.items():
+                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
 
 if __name__ == "__main__":
     start_time = time.time()
