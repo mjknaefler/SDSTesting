@@ -167,6 +167,7 @@ class LinkChecker:
             writer.writerow(['Each row of data is displayed in the format "Plain text of link, URL,Found At:,Parent URL" where the plain text is the hypertext pertaining to the given url and the Parent URL is the webpage where the URL can be found'])
             writer.writerow([])
             writer.writerow([])
+            writer.writerow(['Searchable Sections: \nBroken Internal Links \nBroken External Links \n.edu links missing nofollow \nBad Links \nEmpty Links \nWorking Internal Links \nWorking External Links \n.edu links containing nofollow'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -174,8 +175,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.broken_internal_links.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.broken_internal_links):
+                for text, href in self.broken_internal_links.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -185,8 +189,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.broken_external_links.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.broken_external_links):
+                for text, href in self.broken_external_links.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -196,8 +203,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.edu_missing_nofollow.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.edu_missing_nofollow):
+                for text, href in self.edu_missing_nofollow.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -207,8 +217,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.bad_links.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.bad_links):
+                for text, href in self.bad_links.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -218,8 +231,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.empty_links.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.empty_links):
+                for text, href in self.empty_links.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -229,8 +245,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.working_internal_links.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.working_internal_links):
+                for text, href in self.working_internal_links.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -240,8 +259,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.working_external_links.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.working_external_links):
+                for text, href in self.working_external_links.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
             writer.writerow([])
             writer.writerow([])
             writer.writerow([])
@@ -251,8 +273,11 @@ class LinkChecker:
             writer.writerow([])
             writer.writerow(['Plain Text','URL','Found At:','Parent URL'])
             writer.writerow([])
-            for text, href in self.edu_with_nofollow.items():
-                writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            if (self.edu_with_nofollow):
+                for text, href in self.edu_with_nofollow.items():
+                    writer.writerow([text,href,'Found At:',self.parentLink(text,href)])
+            else:
+                writer.writerow(['None Found'])
 
 if __name__ == "__main__":
     start_time = time.time()
